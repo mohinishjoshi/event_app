@@ -3,4 +3,11 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
+
+  has_many :events
+  has_many :attendance
+
+  def is_owner?(event)
+    event.organizer.id == id
+  end
 end

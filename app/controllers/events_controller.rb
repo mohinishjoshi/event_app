@@ -1,5 +1,7 @@
 class EventsController < ApplicationController
   before_action :set_event, only: [:show, :edit, :update, :destroy]
+  before_action :require_organizer, only: [:edit, :update, :destroy]
+  before_filter :require_logged_in_user, only: [:attend_event, :unattend_event]
 
   # GET /events
   # GET /events.json
@@ -25,6 +27,7 @@ class EventsController < ApplicationController
   # POST /events.json
   def create
     @event = Event.new(event_params)
+    @event.organizer = current_user
 
     respond_to do |format|
       if @event.save
@@ -40,6 +43,7 @@ class EventsController < ApplicationController
   # PATCH/PUT /events/1
   # PATCH/PUT /events/1.json
   def update
+    @event.organizer = current_user
     respond_to do |format|
       if @event.update(event_params)
         format.html { redirect_to @event, notice: 'Event was successfully updated.' }
@@ -61,6 +65,14 @@ class EventsController < ApplicationController
     end
   end
 
+  def attend_event
+
+  end
+
+  def unattend_event
+
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_event
@@ -70,5 +82,9 @@ class EventsController < ApplicationController
     # Only allow a list of trusted parameters through.
     def event_params
       params.require(:event).permit(:name, :event_schedule, :fee)
+    end
+
+    def require_owner
+      redirect_to events_url unless current_user.present? && @event.organizer.id == current_user.id
     end
 end

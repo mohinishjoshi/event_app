@@ -15,5 +15,27 @@
   <%= @event.fee %>
 </p>
 
-<%= link_to 'Edit', edit_event_path(@event) %> |
+<% if current_user.present? && current_user.is_owner?(@event) %>
+  <%= link_to 'Edit', edit_event_path(@event) %> |
+<% end %>
+
+Attendees:
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Gender</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @event.attendees.each do |user| %>
+      <tr>
+        <td><%= user.name %></td>
+        <td><%= user.gender %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
 <%= link_to 'Back', events_path %>

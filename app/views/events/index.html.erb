@@ -19,8 +19,17 @@
         <td><%= event.event_schedule %></td>
         <td><%= event.fee %></td>
         <td><%= link_to 'Show', event %></td>
-        <td><%= link_to 'Edit', edit_event_path(event) %></td>
-        <td><%= link_to 'Destroy', event, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <% if current_user.present? %>
+          <% if current_user.is_owner?(event) %>
+            <td><%= link_to 'Edit', edit_event_path(event) %></td>
+            <td><%= link_to 'Destroy', event, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+          <% end %>
+          <% if event.is_user_attending?(current_user) %>
+            <td><%= link_to 'Un-Attend', unattend_event_path(event) %></td>
+          <% else %>
+            <td><%= link_to 'Attend', attend_event_path(event) %></td>
+          <% end %>
+        <% end %>
       </tr>
     <% end %>
   </tbody>
@@ -28,4 +37,8 @@
 
 <br>
 
-<%= link_to 'New Event', new_event_path %>
+<% if current_user.present? %>
+  <%= link_to 'New Event', new_event_path %>
+<% else %>
+  <%= link_to 'Login', new_user_session_path %>
+<% end %>
