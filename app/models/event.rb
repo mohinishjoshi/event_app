@@ -1,8 +1,9 @@
 class Event < ApplicationRecord
-  belongs_to :organizer, class_name: "User"
-  has_many :attendances
+  belongs_to :user
+  has_many :attendances, dependent: :destroy
+  has_many :users, :through => :attendances
 
   def is_user_attending?(user)
-    attendances.pluck(:user_id).include?(user.id)
+    users.include?(user)
   end
 end

@@ -1,5 +1,3 @@
-<p id="notice"><%= notice %></p>
-
 <p>
   <strong>Name:</strong>
   <%= @event.name %>
@@ -12,7 +10,11 @@
 
 <p>
   <strong>Fee:</strong>
-  <%= @event.fee %>
+  <% if current_user.present? && current_user.gender == "F" %>
+    <%= @event.fee * 0.95 %>
+  <% else %>
+    <%= @event.fee %>
+  <% end %>
 </p>
 
 <% if current_user.present? && current_user.is_owner?(@event) %>
@@ -29,7 +31,7 @@ Attendees:
   </thead>
 
   <tbody>
-    <% @event.attendees.each do |user| %>
+    <% @event.users.each do |user| %>
       <tr>
         <td><%= user.name %></td>
         <td><%= user.gender %></td>
@@ -39,3 +41,9 @@ Attendees:
 </table>
 
 <%= link_to 'Back', events_path %>
+
+<% if @event.is_user_attending?(current_user) %>
+  <td><%= link_to 'Un-Attend', unattend_event_event_path(@event) %></td>
+<% else %>
+  <td><%= link_to 'Attend', attend_event_event_path(@event) %></td>
+<% end %>

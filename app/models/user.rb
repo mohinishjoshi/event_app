@@ -8,6 +8,6 @@ class User < ApplicationRecord
   has_many :attendance
 
   def is_owner?(event)
-    event.organizer.id == id
+    event.user.id == id
   end
 end

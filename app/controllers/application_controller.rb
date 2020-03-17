@@ -11,6 +11,6 @@ class ApplicationController < ActionController::Base
   end
 
   def require_logged_in_user
-    redirect_to events_url unless current_user.present?
+    redirect_to new_user_session_path unless current_user.present?
   end
 end

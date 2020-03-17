@@ -1,7 +1,7 @@
 class EventsController < ApplicationController
-  before_action :set_event, only: [:show, :edit, :update, :destroy]
+  before_action :set_event, only: [:show, :edit, :update, :destroy, :attend_event, :unattend_event]
   before_action :require_organizer, only: [:edit, :update, :destroy]
-  before_filter :require_logged_in_user, only: [:attend_event, :unattend_event]
+  before_action :require_logged_in_user, only: [:attend_event, :unattend_event]
 
   # GET /events
   # GET /events.json
@@ -27,50 +27,55 @@ class EventsController < ApplicationController
   # POST /events.json
   def create
     @event = Event.new(event_params)
-    @event.organizer = current_user
-
-    respond_to do |format|
+    @event.user = current_user
       if @event.save
-        format.html { redirect_to @event, notice: 'Event was successfully created.' }
-        format.json { render :show, status: :created, location: @event }
+        redirect_to @event, notice: 'Event was successfully created.'
       else
-        format.html { render :new }
-        format.json { render json: @event.errors, status: :unprocessable_entity }
+        render :new
       end
-    end
   end
 
   # PATCH/PUT /events/1
   # PATCH/PUT /events/1.json
   def update
-    @event.organizer = current_user
-    respond_to do |format|
+    @event.user = current_user
       if @event.update(event_params)
-        format.html { redirect_to @event, notice: 'Event was successfully updated.' }
-        format.json { render :show, status: :ok, location: @event }
+        redirect_to @event, notice: 'Event was successfully updated.'
       else
-        format.html { render :edit }
-        format.json { render json: @event.errors, status: :unprocessable_entity }
+        render :edit
       end
-    end
   end
 
   # DELETE /events/1
   # DELETE /events/1.json
   def destroy
     @event.destroy
-    respond_to do |format|
-      format.html { redirect_to events_url, notice: 'Event was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    redirect_to events_url, notice: 'Event was successfully destroyed.'
   end
 
   def attend_event
+    redirect_to events_url, notice: 'You cannot attend a past event' if @event.event_schedule <= Date.today
+    attendance = Attendance.new
+    attendance.user_id = current_user.id
+    attendance.event = @event
 
+    if attendance.save
+      redirect_to events_path, notice: 'You are now attending the event.'
+    else
+      redirect_to events_path, notice: 'There was an issue creating your attendance'
+    end
   end
 
   def unattend_event
+    redirect_to events_url, notice: 'You cannot unattend a past event' if @event.event_schedule <= Date.today
 
+    attendance = Attendance.find_by(user_id: current_user.id, event_id: @event.id)
+
+    if attendance.destroy
+      redirect_to events_url, notice: 'You have un-attended from the event.'
+    else
+      redirect_to events_url, notice: 'There was an issue updating your attendance'
+    end
   end
 
   private
@@ -85,6 +90,6 @@ class EventsController < ApplicationController
     end
 
     def require_owner
-      redirect_to events_url unless current_user.present? && @event.organizer.id == current_user.id
+      redirect_to events_url, notice: 'Only the owner of the event can perform this action' unless current_user.present? && @event.user.id == current_user.id
     end
 end
